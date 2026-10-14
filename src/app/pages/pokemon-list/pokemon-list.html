@@ -1,0 +1,60 @@
+<section class="list">
+  <header class="list__header">
+    <h1>Pokédex</h1>
+    <p class="subtitle">Explora y filtra Pokémon usando la PokéAPI.</p>
+  </header>
+
+  <div class="filters">
+    <input
+      type="search"
+      placeholder="Buscar por nombre…"
+      [ngModel]="search()"
+      (ngModelChange)="onSearch($event)"
+    />
+
+    <select [ngModel]="selectedType()" (ngModelChange)="onTypeChange($event)">
+      <option value="">Todos los tipos</option>
+      @for (t of types(); track t.name) {
+        <option [value]="t.name">{{ t.name | titlecase }}</option>
+      }
+    </select>
+
+    <select [ngModel]="selectedGeneration()" (ngModelChange)="onGenerationChange($event)">
+      <option value="">Todas las generaciones</option>
+      @for (g of generations(); track g.name) {
+        <option [value]="g.name">{{ g.name | titlecase }}</option>
+      }
+    </select>
+
+    <button type="button" class="clear" (click)="clearFilters()">Limpiar</button>
+  </div>
+
+  @if (!loading() && !error()) {
+    <p class="count">
+      {{ filtered().length }} Pokémon encontrados · Página {{ page() }} de {{ totalPages() }}
+    </p>
+  }
+
+  @if (loading()) {
+    <div class="loading">Cargando Pokémon…</div>
+  }
+  @if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+
+  @if (!loading() && !error()) {
+    <div class="grid">
+      @for (p of paged(); track p.id) {
+        <app-pokemon-card [item]="p" />
+      }
+    </div>
+  }
+
+  @if (!loading() && !error() && totalPages() > 1) {
+    <div class="pagination">
+      <button type="button" (click)="prevPage()" [disabled]="page() === 1">Anterior</button>
+      <span>{{ page() }} / {{ totalPages() }}</span>
+      <button type="button" (click)="nextPage()" [disabled]="page() === totalPages()">Siguiente</button>
+    </div>
+  }
+</section>

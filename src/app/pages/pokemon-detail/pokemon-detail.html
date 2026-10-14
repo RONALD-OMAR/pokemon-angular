@@ -1,0 +1,99 @@
+<section class="detail">
+  <a routerLink="/" class="back">← Volver</a>
+
+  @if (loading()) {
+    <div class="loading">Cargando Pokémon…</div>
+  }
+  @if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+
+  @if (pokemon(); as p) {
+    <article class="card" [style.background]="cardGradient()">
+      <header>
+        <h1>{{ p.name | titlecase }}</h1>
+        <span class="number">#{{ p.id.toString().padStart(3, '0') }}</span>
+      </header>
+
+      <div class="media">
+        <img [src]="currentImage()" [alt]="p.name" />
+        <div class="media-actions">
+          <button type="button" class="cry-btn" (click)="playCry()" [disabled]="!hasCry()">🔊 Grito</button>
+          <button type="button" class="shiny-btn" (click)="toggleShiny()">
+            {{ shiny() ? 'Ver normal' : 'Ver Shiny' }}
+          </button>
+        </div>
+        <div class="types">
+          @for (t of p.types; track t.type.name) {
+            <span class="type" [style.background]="cardColor()">{{ t.type.name }}</span>
+          }
+        </div>
+      </div>
+
+      @if (description()) {
+        <p class="description">{{ description() }}</p>
+      }
+
+      <div class="info">
+        <div><strong>Altura:</strong> {{ p.height / 10 }} m</div>
+        <div><strong>Peso:</strong> {{ p.weight / 10 }} kg</div>
+        <div><strong>Exp. base:</strong> {{ p.base_experience ?? '-' }}</div>
+      </div>
+
+      <section class="stats">
+        <h2>Estadísticas</h2>
+        @for (s of p.stats; track s.stat.name) {
+          <div class="stat">
+            <span class="stat__name">{{ s.stat.name }}</span>
+            <div class="stat__bar">
+              <div [style.width.%]="Math.min(100, (s.base_stat / 255) * 100)" [style.background]="cardColor()"></div>
+            </div>
+            <span class="stat__value">{{ s.base_stat }}</span>
+          </div>
+        }
+      </section>
+
+      <section class="abilities">
+        <h2>Habilidades</h2>
+        <ul>
+          @for (a of p.abilities; track a.ability.name) {
+            <li>
+              {{ a.ability.name | titlecase }}
+              @if (a.is_hidden) { <em>(oculta)</em> }
+            </li>
+          }
+        </ul>
+      </section>
+
+      <section class="evolutions">
+        <h2>Evoluciones</h2>
+        @if (evolutionsLoading()) {
+          <div class="loading">Cargando evoluciones…</div>
+        } @else if (evolutions().length === 0) {
+          <p class="no-evo">Sin datos de evolución.</p>
+        } @else {
+          <div class="evo-chain">
+            @for (stage of evolutions(); track stage.name; let i = $index) {
+              @if (i > 0) {
+                <span class="arrow">➔</span>
+              }
+              <a class="evo-stage" [routerLink]="['/pokemon', stage.name]">
+                <img
+                  [src]="'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/' + stage.id + '.png'"
+                  [alt]="stage.name"
+                  loading="lazy"
+                />
+                <span class="evo-name">{{ stage.name | titlecase }}</span>
+                @if (stage.requirement) {
+                  <span class="evo-req">{{ stage.requirement }}</span>
+                } @else {
+                  <span class="evo-req base">Base</span>
+                }
+              </a>
+            }
+          </div>
+        }
+      </section>
+    </article>
+  }
+</section>
